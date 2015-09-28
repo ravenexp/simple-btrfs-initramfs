@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Copyright 2015 Sergey Kvachonok
+# Licensed under the CC-BY-SA-3.0 license.
+
+FSROOT="/usr/local/src/initramfs"
+IMAGE="/boot/initramfs.img"
+
+SELF=${BASH_SOURCE[0]}
+PREFIX=${SELF%/bin/*}
+
+INITSCRIPT="${PREFIX}/share/simple-btrfs-initramfs/simple-initramfs-init"
+
+DIRS=( bin dev mnt/root proc sys )
+PROGS=(
+    "/usr/bin/busybox-static"
+    "${PREFIX}/bin/btrfs-register"
+)
+
+set -e
+
+for i in "${DIRS[@]}" ; do
+    mkdir -p "${FSROOT}/${i}"
+done
+
+for i in "${PROGS[@]}" ; do
+    echo Installing "${i}"
+    install -m 755 "${i}" "${FSROOT}/bin"
+done
+
+echo "Init script ${INITSCRIPT}"
+install -m 755 "${INITSCRIPT}" "${FSROOT}/init"
+
+echo "Compressing..."
+cd "${FSROOT}" ; find . -print0 \
+| cpio --null -ov --format=newc \
+| gzip --best > "${IMAGE}"
+
+echo "Generated ${IMAGE}"

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+PREFIX=/usr/local
+
+while [[ $# -gt 0 ]] ; do
+    if [[ $1 == --prefix=* ]] ; then
+        PREFIX=${1#--prefix=}
+    fi
+
+    if [[ $1 == --prefix ]] ; then
+        PREFIX=$2
+        shift
+    fi
+
+    shift
+done
+
+echo "Will install to ${PREFIX}"
+echo "${PREFIX}" > .config-prefix
